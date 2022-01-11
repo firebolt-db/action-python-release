@@ -2,12 +2,6 @@ name: Release new version
 description: Release python project on pypi and github
 
 inputs:
-  firebolt-username:
-    description: 'Firebolt username with access to dev.firebolt.io'
-    required: true
-  firebolt-password:
-    description: 'Corresponding Firebolt password'
-    required: true
   release-pat:
     description: 'PAT with permissions to create new releases'
     required: true
@@ -25,12 +19,6 @@ runs:
     contents: write
   using: "composite"
   steps:
-    - name: Integration-tests
-      uses: firebolt-db/firebolt-python-sdk/.github/workflows/integration-tests.yml@main
-      secrets:
-        FIREBOLT_USERNAME: ${{ inputs.firebolt-username }}
-        FIREBOLT_PASSWORD: ${{ inputs.firebolt-password }}
-
     - name: Check out code
       uses: actions/checkout@v2
       with:
