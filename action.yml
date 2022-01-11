@@ -11,6 +11,14 @@ inputs:
   release-pat:
     description: 'PAT with permissions to create new releases'
     required: true
+  preReleaseTag:
+    description: 'Tag for pre-release'
+    default: ''
+    required: true
+  majorRelease:
+    description: 'Trigger a major release. Leave empty for regular release.'
+    default: ''
+    required: true
     
 runs:
   permissions:
@@ -50,7 +58,7 @@ runs:
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
         CHANGE_LOG=$(git log $OLD_TAG..HEAD --pretty=format:%s)
-        NEW_TAG=$(python3 ./ci/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ github.event.inputs.preReleaseTag }}" --major_release "${{ github.event.inputs.majorRelease }}")
+        NEW_TAG=$(python3 ./ci/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.preReleaseTag }}" --major_release "${{ inputs.majorRelease }}")
         echo "::set-output name=new_tag::$NEW_TAG"
 
     - name: Version bump
@@ -73,7 +81,7 @@ runs:
       with:
         tag_name: ${{ steps.tag_generation.outputs.new_tag }}
         generate_release_notes: true
-        prerelease: ${{ github.event.inputs.preReleaseTag != '' }}
+        prerelease: ${{ inputs.preReleaseTag != '' }}
 
     - name: Publish to pypi
       run: |
