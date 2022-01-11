@@ -5,18 +5,22 @@ inputs:
   release-pat:
     description: 'PAT with permissions to create new releases'
     required: true
-  preReleaseTag:
+  pre-release-tag:
     description: 'Tag for pre-release'
     default: ''
     required: true
-  majorRelease:
+  major-release:
     description: 'Trigger a major release. Leave empty for regular release.'
     default: ''
     required: true
+  pypi-username:
+    description: 'Pypi username for deployment'
+    required: true
+  pypi-password:
+    description: 'Pypi password for deployment'
+    required: true
     
 runs:
-  permissions:
-    contents: write
   using: "composite"
   steps:
     - name: Check out code
@@ -34,11 +38,13 @@ runs:
       run: |
         python -m pip install --upgrade pip
         pip install ".[release]"
+      shell: bash
         
     - name: Setup git config
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "<>"
+      shell: bash
 
     - name: Generate new version tag
       id: tag_generation
@@ -46,8 +52,9 @@ runs:
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
         CHANGE_LOG=$(git log $OLD_TAG..HEAD --pretty=format:%s)
-        NEW_TAG=$(python3 ./ci/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.preReleaseTag }}" --major_release "${{ inputs.majorRelease }}")
+        NEW_TAG=$(python3 ./ci/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.pre-release-tag }}" --major_release "${{ inputs.major-release }}")
         echo "::set-output name=new_tag::$NEW_TAG"
+      shell: bash
 
     - name: Version bump
       run: |
@@ -58,23 +65,25 @@ runs:
         git add setup.cfg
         git commit -m "Automatic version bump to ${{ steps.tag_generation.outputs.new_tag }}"
         git push origin main
+      shell: bash
         
     - name: Publish tag on github
       run: |
         git tag ${{ steps.tag_generation.outputs.new_tag }}
         git push origin ${{ steps.tag_generation.outputs.new_tag }}
+      shell: bash
         
     - name: Release on github
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.tag_generation.outputs.new_tag }}
         generate_release_notes: true
-        prerelease: ${{ inputs.preReleaseTag != '' }}
+        prerelease: ${{ inputs.pre-release-tag != '' }}
 
     - name: Publish to pypi
       run: |
         python3 -m build
         python3 -m twine upload dist/*
       env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_USERNAME: ${{ inputs.pypi-username }}
+        TWINE_PASSWORD: ${{ inputs.pypi-password }}
