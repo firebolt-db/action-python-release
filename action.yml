@@ -87,3 +87,4 @@ runs:
       env:
         TWINE_USERNAME: ${{ inputs.pypi-username }}
         TWINE_PASSWORD: ${{ inputs.pypi-password }}
+      shell: bash
