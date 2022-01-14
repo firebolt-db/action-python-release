@@ -5,15 +5,15 @@ GitHub Action for python project release in pypi and github
 ## Inputs
 
 ### `pre-release-tag`
-    **Required:** Tag for pre-release. e.g. v1.0.1-*alpha*. If release is not a pre-release leave blank.
-    Example: `pre-release-tag: alpha`
+**Required:** Tag for pre-release. e.g. v1.0.1-*alpha*. If release is not a pre-release leave blank.
+Example: `pre-release-tag: alpha`
 ### `major-release`
-    **Required:** Trigger a major release. Any non-empty value here indicates it's a major release. If not a major release leave blank.
-    Example: `major-release: true`
+**Required:** Trigger a major release. Any non-empty value here indicates it's a major release. If not a major release leave blank.
+Example: `major-release: true`
 ### `pypi-username`
-    **Required:** Pypi username for deployment
+**Required:** Pypi username for deployment
 ### `pypi-password`
-    **Required:** Pypi password for deployment
+**Required:** Pypi password for deployment
 
 ## Known limitations
 
