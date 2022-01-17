@@ -43,7 +43,7 @@ runs:
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
         CHANGE_LOG=$(git log $OLD_TAG..HEAD --pretty=format:%s)
-        NEW_TAG=$(python3 ./ci/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.pre-release-tag }}" --major_release "${{ inputs.major-release }}")
+        NEW_TAG=$(python3 ./scripts/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.pre-release-tag }}" --major_release "${{ inputs.major-release }}")
         echo "::set-output name=new_tag::$NEW_TAG"
       shell: bash
 
