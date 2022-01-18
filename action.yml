@@ -16,6 +16,10 @@ inputs:
   pypi-password:
     description: 'Pypi password for deployment'
     required: true
+  main-branch:
+    description: 'Name of the main branch in the repo'
+    default: 'main'
+    required: false
     
 runs:
   using: "composite"
@@ -61,7 +65,7 @@ runs:
         python3 -c "from configparser import ConfigParser; c = ConfigParser(); c.read('setup.cfg'); assert c['metadata']['version'] == '${{ steps.tag_generation.outputs.new_tag }}', 'Version was not updated correctly in setup.cfg'"
         git add setup.cfg
         git commit -m "Automatic version bump to ${{ steps.tag_generation.outputs.new_tag }}"
-        git push origin main
+        git push origin ${{ inputs.main-branch }}
       shell: bash
         
     - name: Publish tag on github
