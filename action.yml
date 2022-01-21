@@ -63,7 +63,7 @@ runs:
     - name: Version bump
       run: |
         # Bump version = <number> in version file
-        sed -i "s/^__version__ = .*/__version__ = ${{ steps.tag_generation.outputs.new_tag }}/" ${{ inputs.version-file-path }}
+        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_generation.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
         git add ${{ inputs.version-file-path }}
         git commit -m "Automatic version bump to ${{ steps.tag_generation.outputs.new_tag }}"
         git push origin ${{ inputs.main-branch }}
