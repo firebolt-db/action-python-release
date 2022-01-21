@@ -14,6 +14,10 @@ Example: `major-release: true`
 **Required:** Pypi username for deployment
 ### `pypi-password`
 **Required:** Pypi password for deployment
+### `version-file-path`
+**Required:** Path to the file containing __version__ = <version_number> , where version_number will be incremented and commited to the main branch. This should be a relative path from the root of the repo.
+### `main-branch`
+**Optional:** Name of the default branch in the repo. Usually is main or master (old). Defaults to main.
 
 ## Known limitations
 
