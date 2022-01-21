@@ -16,6 +16,9 @@ inputs:
   pypi-password:
     description: 'Pypi password for deployment'
     required: true
+  version-file-path:
+    description: 'Path to the file containing __version__ = '
+    required: true
   main-branch:
     description: 'Name of the main branch in the repo'
     default: 'main'
@@ -59,11 +62,9 @@ runs:
 
     - name: Version bump
       run: |
-        # Bump version = <number> in setup.cfg
-        sed -i "s/^version = .*/version = ${{ steps.tag_generation.outputs.new_tag }}/" setup.cfg
-        # Verify the change
-        python3 -c "from configparser import ConfigParser; c = ConfigParser(); c.read('setup.cfg'); assert c['metadata']['version'] == '${{ steps.tag_generation.outputs.new_tag }}', 'Version was not updated correctly in setup.cfg'"
-        git add setup.cfg
+        # Bump version = <number> in version file
+        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_generation.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
+        git add ${{ inputs.version-file-path }}
         git commit -m "Automatic version bump to ${{ steps.tag_generation.outputs.new_tag }}"
         git push origin ${{ inputs.main-branch }}
       shell: bash
