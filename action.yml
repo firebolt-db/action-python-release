@@ -71,14 +71,6 @@ runs:
         echo "::set-output name=resolved_tag::$TAG"
       shell: bash
 
-    - name: Version bump
-      run: |
-        # Bump version = <number> in version file
-        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_resolution.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
-        git add ${{ inputs.version-file-path }}
-        git commit -m "Automatic version bump to ${{ steps.tag_resolution.outputs.new_tag }}"
-        git push origin ${{ inputs.main-branch }}
-      shell: bash
         
     - name: Publish tag on github
       run: |
@@ -86,18 +78,3 @@ runs:
         git push origin ${{ steps.tag_resolution.outputs.new_tag }}
       shell: bash
         
-    - name: Release on github
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ steps.tag_resolution.outputs.new_tag }}
-        generate_release_notes: true
-        prerelease: ${{ inputs.pre-release-tag != '' }}
-
-    - name: Publish to pypi
-      run: |
-        python3 -m build
-        python3 -m twine upload dist/*
-      env:
-        TWINE_USERNAME: ${{ inputs.pypi-username }}
-        TWINE_PASSWORD: ${{ inputs.pypi-password }}
-      shell: bash
