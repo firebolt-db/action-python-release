@@ -24,7 +24,7 @@ inputs:
     default: 'main'
     required: false
   version-override:
-    description: 'Override automatic version generation,'
+    description: 'Override automatic version generation'
     required: false
     
 runs:
@@ -55,7 +55,7 @@ runs:
 
     - name: Generate new version tag
       id: tag_generation
-      if: ${{ inputs.version-override }} == ''
+      if: inputs.version-override == ''
       run: |
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
@@ -68,7 +68,7 @@ runs:
       id: tag_resolution
       run: |
         TAG=${{ steps.tag_generation.outputs.new_tag }}${{ inputs.version-override }}
-        echo "::set-output name=resolved_tag::$TAG"
+        echo "::set-output name=new_tag::$TAG"
       shell: bash
 
     - name: Version bump
@@ -85,7 +85,7 @@ runs:
         git tag ${{ steps.tag_resolution.outputs.new_tag }}
         git push origin ${{ steps.tag_resolution.outputs.new_tag }}
       shell: bash
-        
+
     - name: Release on github
       uses: softprops/action-gh-release@v1
       with:
