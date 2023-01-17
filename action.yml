@@ -55,7 +55,7 @@ runs:
 
     - name: Generate new version tag
       id: tag_generation
-      if: ${{ inputs.version-override }} == ''
+      if: inputs.version-override == ''
       run: |
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
