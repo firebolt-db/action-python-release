@@ -23,6 +23,9 @@ inputs:
     description: 'Name of the main branch in the repo'
     default: 'main'
     required: false
+  version-override:
+    description: 'Override automatic version generation'
+    required: false
     
 runs:
   using: "composite"
@@ -52,6 +55,7 @@ runs:
 
     - name: Generate new version tag
       id: tag_generation
+      if: inputs.version-override == ''
       run: |
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
@@ -60,25 +64,32 @@ runs:
         echo "new_tag=$NEW_TAG" >>  $GITHUB_OUTPUT
       shell: bash
 
+    - name: Use overridden tag if supplied
+      id: tag_resolution
+      run: |
+        TAG=${{ steps.tag_generation.outputs.new_tag }}${{ inputs.version-override }}
+        echo "::set-output name=new_tag::$TAG"
+      shell: bash
+
     - name: Version bump
       run: |
         # Bump version = <number> in version file
-        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_generation.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
+        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_resolution.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
         git add ${{ inputs.version-file-path }}
-        git commit -m "Automatic version bump to ${{ steps.tag_generation.outputs.new_tag }}"
+        git commit -m "Automatic version bump to ${{ steps.tag_resolution.outputs.new_tag }}"
         git push origin ${{ inputs.main-branch }}
       shell: bash
         
     - name: Publish tag on github
       run: |
-        git tag ${{ steps.tag_generation.outputs.new_tag }}
-        git push origin ${{ steps.tag_generation.outputs.new_tag }}
+        git tag ${{ steps.tag_resolution.outputs.new_tag }}
+        git push origin ${{ steps.tag_resolution.outputs.new_tag }}
       shell: bash
-        
+
     - name: Release on github
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ steps.tag_generation.outputs.new_tag }}
+        tag_name: ${{ steps.tag_resolution.outputs.new_tag }}
         generate_release_notes: true
         prerelease: ${{ inputs.pre-release-tag != '' }}
 
