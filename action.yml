@@ -68,7 +68,7 @@ runs:
       id: tag_resolution
       run: |
         TAG=${{ steps.tag_generation.outputs.new_tag }}${{ inputs.version-override }}
-        echo "::set-output name=new_tag::$TAG"
+        echo "new_tag=\"${TAG}\"" >> "${GITHUB_OUTPUT}"
       shell: bash
 
     - name: Version bump
