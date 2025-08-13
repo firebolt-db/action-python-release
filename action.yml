@@ -38,7 +38,7 @@ runs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install argparse build semver twine
+        pip install build twine
       shell: bash
         
     - name: Setup git config
@@ -47,27 +47,33 @@ runs:
         git config user.email "<>"
       shell: bash
 
-    - name: Checkout action repo
-      uses: actions/checkout@v2
-      with:
-        repository: firebolt-db/action-python-release
-        path: release_action
-
-    - name: Generate new version tag
-      id: tag_generation
+    - name: Get changes since last release
+      id: get_changes
       if: inputs.version-override == ''
       run: |
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
         CHANGE_LOG=$(git log $OLD_TAG..HEAD --pretty=format:%s)
-        NEW_TAG=$(python3 release_action/scripts/generate_version_tag.py "${CHANGE_LOG}" $OLD_TAG --prerelease_tag "${{ inputs.pre-release-tag }}" --major_release "${{ inputs.major-release }}")
-        echo "new_tag=$NEW_TAG" >>  $GITHUB_OUTPUT
+        echo "changes<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGE_LOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "old_tag=$OLD_TAG" >> $GITHUB_OUTPUT
       shell: bash
+
+    - name: Generate new version tag
+      id: tag_generation
+      if: inputs.version-override == ''
+      uses: firebolt-db/action-generate-version@main
+      with:
+        changes: ${{ steps.get_changes.outputs.changes }}
+        old-tag: ${{ steps.get_changes.outputs.old_tag }}
+        prerelease-tag: ${{ inputs.pre-release-tag }}
+        major-release: ${{ inputs.major-release }}
 
     - name: Use overridden tag if supplied
       id: tag_resolution
       run: |
-        TAG=${{ steps.tag_generation.outputs.new_tag }}${{ inputs.version-override }}
+        TAG=${{ steps.tag_generation.outputs.new-tag }}${{ inputs.version-override }}
         echo "new_tag=${TAG}" >> "${GITHUB_OUTPUT}"
       shell: bash
 
