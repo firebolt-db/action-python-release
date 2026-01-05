@@ -53,7 +53,7 @@ runs:
       run: |
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
-        CHANGE_LOG=$(git log $OLD_TAG..HEAD --pretty=format:%s)
+        CHANGE_LOG=$(git log "$OLD_TAG"..HEAD --pretty=format:%s | sed 's/"/\\"/g')
         echo "changes<<EOF" >> $GITHUB_OUTPUT
         echo "$CHANGE_LOG" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
