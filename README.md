@@ -59,7 +59,8 @@ jobs:
         token: ${{ steps.app-token.outputs.token }}
 
     - name: 'Publish action'
-      uses: firebolt-db/action-python-release@main
+      # Pin to the commit SHA of a release, e.g. v1.0.0.
+      uses: firebolt-db/action-python-release@v1.0.0
       with:
         pre-release-tag: ${{ inputs.pre-release-tag }}
         major-release: ${{ inputs.major-release }}
