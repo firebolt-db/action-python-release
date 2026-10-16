@@ -31,7 +31,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up Python 3.14
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.14'
     
@@ -54,16 +54,18 @@ runs:
         OLD_TAG=$(git describe --tags --abbrev=0)
         echo "Old tag was ${OLD_TAG}"
         CHANGE_LOG=$(git log "$OLD_TAG"..HEAD --pretty=format:%s | sed 's/"/\\"/g')
-        echo "changes<<EOF" >> $GITHUB_OUTPUT
-        echo "$CHANGE_LOG" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        echo "old_tag=$OLD_TAG" >> $GITHUB_OUTPUT
+        {
+          echo "changes<<EOF"
+          echo "$CHANGE_LOG"
+          echo "EOF"
+          echo "old_tag=$OLD_TAG"
+        } >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Generate new version tag
       id: tag_generation
       if: inputs.version-override == ''
-      uses: firebolt-db/action-generate-version@main
+      uses: firebolt-db/action-generate-version@b3f5f7643c9ffe0c1331f086cf1eeb3680114b13 # main
       with:
         changes: ${{ steps.get_changes.outputs.changes }}
         old-tag: ${{ steps.get_changes.outputs.old_tag }}
@@ -73,27 +75,36 @@ runs:
     - name: Use overridden tag if supplied
       id: tag_resolution
       run: |
-        TAG=${{ steps.tag_generation.outputs.new-tag }}${{ inputs.version-override }}
+        TAG="${GENERATED_TAG}${VERSION_OVERRIDE}"
         echo "new_tag=${TAG}" >> "${GITHUB_OUTPUT}"
+      env:
+        GENERATED_TAG: ${{ steps.tag_generation.outputs.new-tag }}
+        VERSION_OVERRIDE: ${{ inputs.version-override }}
       shell: bash
 
     - name: Version bump
       run: |
         # Bump version = <number> in version file
-        sed -i "s/^__version__ = .*/__version__ = \"${{ steps.tag_resolution.outputs.new_tag }}\"/" ${{ inputs.version-file-path }}
-        git add ${{ inputs.version-file-path }}
-        git commit -m "Automatic version bump to ${{ steps.tag_resolution.outputs.new_tag }}"
-        git push origin ${{ inputs.main-branch }}
+        sed -i "s/^__version__ = .*/__version__ = \"${NEW_TAG}\"/" "$VERSION_FILE_PATH"
+        git add "$VERSION_FILE_PATH"
+        git commit -m "Automatic version bump to ${NEW_TAG}"
+        git push origin "$MAIN_BRANCH"
+      env:
+        NEW_TAG: ${{ steps.tag_resolution.outputs.new_tag }}
+        VERSION_FILE_PATH: ${{ inputs.version-file-path }}
+        MAIN_BRANCH: ${{ inputs.main-branch }}
       shell: bash
         
     - name: Publish tag on github
       run: |
-        git tag ${{ steps.tag_resolution.outputs.new_tag }}
-        git push origin ${{ steps.tag_resolution.outputs.new_tag }}
+        git tag "$NEW_TAG"
+        git push origin "$NEW_TAG"
+      env:
+        NEW_TAG: ${{ steps.tag_resolution.outputs.new_tag }}
       shell: bash
 
     - name: Release on github
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
       with:
         tag_name: ${{ steps.tag_resolution.outputs.new_tag }}
         generate_release_notes: true
